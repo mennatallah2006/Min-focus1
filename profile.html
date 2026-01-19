@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Focus – Profile</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3fff7;
+  text-align:center;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-around;
+  padding: 15px;
+  background: #1b7f4a;
+}
+.navbar a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  cursor:pointer;
+}
+.navbar a.active { border-bottom: 2px solid white; }
+
+/* Profile */
+.profile {
+  padding: 25px;
+}
+
+.profile img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid #1b7f4a;
+  object-fit: cover;
+}
+
+.profile button {
+  margin-top: 10px;
+  background: #1b7f4a;
+  color: white;
+  border: none;
+  padding: 6px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+.tabs button {
+  margin: 0 5px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: 2px solid #1b7f4a;
+  background: white;
+  color: #1b7f4a;
+  cursor: pointer;
+}
+.tabs button.active {
+  background: #1b7f4a;
+  color: white;
+}
+
+/* Tasks */
+.tasks {
+  max-width: 400px;
+  margin: auto;
+  text-align:right;
+}
+.task {
+  background: white;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Start End */
+.task button {
+  margin-left: 5px;
+  padding: 5px 12px;
+  border-radius: 15px;
+  border: 1px solid #1b7f4a;
+  background: white;
+  color: #1b7f4a;
+  cursor: pointer;
+}
+.task button.active {
+  background: #1b7f4a;
+  color: white;
+}
+
+/* Add task */
+.add-task {
+  margin-top: 15px;
+}
+.add-task input {
+  padding: 10px;
+  width: 70%;
+  border-radius: 20px;
+  border: 1px solid #1b7f4a;
+}
+.add-task button {
+  padding: 10px 15px;
+  border-radius: 20px;
+  background: #1b7f4a;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+/* Motivational message */
+#motivation {
+  margin-top:15px;
+  font-weight:bold;
+  color:#1b7f4a;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<div class="navbar">
+  <a onclick="goTo('profile')" class="active">Profile</a>
+  <a onclick="goTo('main')">Main</a>
+  <a onclick="goTo('session')">Session</a>
+</div>
+
+<!-- Profile -->
+<div class="profile">
+  <img id="profileImg" src="https://via.placeholder.com/150">
+  <br>
+  <button onclick="changeImg()">Change</button>
+  <input type="file" id="imgInput" hidden>
+  <h2 id="username"></h2>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="active" onclick="switchTab('today')">Today</button>
+  <button onclick="switchTab('week')">Week</button>
+  <button onclick="switchTab('month')">Month</button>
+</div>
+
+<!-- Tasks -->
+<div class="tasks" id="tasks"></div>
+
+<!-- Add Task -->
+<div class="add-task">
+  <input id="taskInput" placeholder="اكتب التاسك">
+  <button onclick="addTask()">Add</button>
+</div>
+
+<!-- Motivational message -->
+<div id="motivation"></div>
+
+<script>
+/* Navbar Navigation */
+function goTo(page){
+  alert("هينتقل لصفحة " + page + " لاحقاً 😉");
+}
+
+/* Username from login */
+let username = localStorage.getItem("username") || "User";
+document.getElementById("username").innerText = username;
+
+/* Profile Image */
+function changeImg() { document.getElementById("imgInput").click(); }
+imgInput.onchange = e => {
+  const reader = new FileReader();
+  reader.onload = () => {
+    localStorage.setItem("profileImg", reader.result);
+    profileImg.src = reader.result;
+  };
+  reader.readAsDataURL(e.target.files[0]);
+};
+if(localStorage.getItem("profileImg")) profileImg.src = localStorage.getItem("profileImg");
+
+/* Tasks logic */
+let currentTab="today";
+let data={today:[], week:[], month:[]};
+
+/* Motivational messages */
+const messages=[
+  "حلو أوي! كمل كدا 💚",
+  "أنت بتعمل تقدم 🔥",
+  "Keep going! 💪",
+  "خطوة ممتازة 👏",
+  "ركز كدا وإنجز!"
+];
+
+/* Switch tabs */
+function switchTab(tab){
+  currentTab=tab;
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+  event.target.classList.add("active");
+  render();
+}
+
+/* Add task */
+function addTask(){
+  const val=taskInput.value.trim();
+  if(!val) return;
+
+  if(currentTab==="today" && data.today.length>=3){
+    alert("كفاية عليك كدا النهارده علشان متتشتتش 💚");
+    return;
+  }
+
+  data[currentTab].push({text:val,status:""});
+  taskInput.value="";
+  render();
+}
+
+/* Render tasks */
+function render(){
+  tasks.innerHTML="";
+  data[currentTab].forEach((t,i)=>{
+    tasks.innerHTML+=`
+      <div class="task">
+        <span>${t.text}</span>
+        <div>
+          <button onclick="setStatus(${i},'start')"
+            class="${t.status==='start'?'active':''}">Start</button>
+          <button onclick="setStatus(${i},'end')"
+            class="${t.status==='end'?'active':''}">End</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+/* Start/End */
+function setStatus(i,s){
+  data[currentTab][i].status=s;
+  render();
+
+  // Show motivational message randomly
+  const msg = messages[Math.floor(Math.random()*messages.length)];
+  document.getElementById("motivation").innerText = msg;
+}
+</script>
+
+</body>
+</html>

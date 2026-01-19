@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Focus – Login / Sign Up</title>
+<style>
+body {
+  margin:0;
+  font-family: Arial, sans-serif;
+  background: #f3fff7;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.container {
+  background:white;
+  padding:30px 40px;
+  border-radius:20px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.2);
+  width:350px;
+  text-align:center;
+}
+
+h2 { color:#1b7f4a; margin-bottom:20px; }
+
+input {
+  width:80%;
+  padding:10px;
+  margin:10px 0;
+  border-radius:20px;
+  border:1px solid #1b7f4a;
+}
+
+button {
+  padding:10px 20px;
+  margin-top:10px;
+  border-radius:20px;
+  border:none;
+  background:#1b7f4a;
+  color:white;
+  cursor:pointer;
+}
+
+.toggle {
+  margin-top:15px;
+  color:#1b7f4a;
+  cursor:pointer;
+  text-decoration:underline;
+}
+</style>
+</head>
+<body>
+
+<div class="container" id="authContainer">
+  <h2 id="title">Login</h2>
+  <input type="text" id="usernameInput" placeholder="ادخل اسمك">
+  <input type="password" id="passwordInput" placeholder="ادخل كلمة السر">
+  <br>
+  <button id="submitBtn">Login</button>
+  <div class="toggle" id="toggleBtn">ليس لديك حساب؟ سجل هنا</div>
+</div>
+
+<script>
+// Check if user is already logged in
+if(localStorage.getItem("username") && localStorage.getItem("password")){
+  window.location.href="profile.html"; // Redirect to Profile page
+}
+
+let isLogin = true;
+
+const title = document.getElementById("title");
+const toggleBtn = document.getElementById("toggleBtn");
+const submitBtn = document.getElementById("submitBtn");
+const usernameInput = document.getElementById("usernameInput");
+const passwordInput = document.getElementById("passwordInput");
+
+toggleBtn.onclick = () => {
+  isLogin = !isLogin;
+  if(isLogin){
+    title.innerText = "Login";
+    submitBtn.innerText = "Login";
+    toggleBtn.innerText = "ليس لديك حساب؟ سجل هنا";
+  } else {
+    title.innerText = "Sign Up";
+    submitBtn.innerText = "Sign Up";
+    toggleBtn.innerText = "لديك حساب؟ سجل الدخول";
+  }
+};
+
+submitBtn.onclick = () => {
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value.trim();
+  if(!username || !password){
+    alert("الرجاء إدخال اسم المستخدم وكلمة المرور");
+    return;
+  }
+
+  if(isLogin){
+    // Login
+    const storedUser = localStorage.getItem("username");
+    const storedPass = localStorage.getItem("password");
+    if(storedUser === username && storedPass === password){
+      alert("تم تسجيل الدخول بنجاح 💚");
+      window.location.href="profile.html";
+    } else {
+      alert("اسم المستخدم أو كلمة السر غير صحيحة");
+    }
+  } else {
+    // Sign Up
+    localStorage.setItem("username", username);
+    localStorage.setItem("password", password);
+    alert("تم إنشاء الحساب بنجاح 💚");
+    window.location.href="profile.html";
+  }
+};
+</script>
+
+</body>
+</html>

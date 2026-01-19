@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Focus – Session</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f3fff7;
+  text-align:center;
+}
+
+/* Navbar */
+.navbar{
+  display:flex;
+  justify-content:space-around;
+  padding:15px;
+  background:#1b7f4a;
+}
+.navbar a{
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  text-decoration:none;
+}
+.navbar a.active{
+  border-bottom:2px solid white;
+}
+
+/* Session */
+.session{
+  position:relative;
+  height:80vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+/* Timer */
+.timer{
+  width:200px;
+  height:200px;
+  border-radius:50%;
+  background:white;
+  border:6px solid #1b7f4a;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  font-size:32px;
+  font-weight:bold;
+  color:#1b7f4a;
+  z-index:2;
+}
+
+.timer button{
+  margin-top:10px;
+  padding:6px 20px;
+  border-radius:20px;
+  border:none;
+  background:#1b7f4a;
+  color:white;
+  cursor:pointer;
+}
+
+/* Users rotating */
+.users{
+  position:absolute;
+  width:100%;
+  height:100%;
+  animation: spin 25s linear infinite;
+}
+
+@keyframes spin{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+
+.user{
+  position:absolute;
+  text-align:center;
+  cursor:pointer;
+}
+
+.user img{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  border:3px solid #1b7f4a;
+}
+
+.user span{
+  display:block;
+  font-size:13px;
+}
+
+/* Tasks */
+.tasks{
+  max-width:420px;
+  margin:10px auto;
+  text-align:right;
+}
+
+.task{
+  background:white;
+  padding:10px;
+  margin:8px 0;
+  border-radius:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,.1);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.task.done{
+  opacity:.6;
+  text-decoration:line-through;
+}
+
+.task button{
+  margin-left:5px;
+  padding:5px 12px;
+  border-radius:15px;
+  border:1px solid #1b7f4a;
+  background:white;
+  color:#1b7f4a;
+  cursor:pointer;
+}
+
+.task button.active{
+  background:#1b7f4a;
+  color:white;
+}
+
+/* Motivation */
+#motivation{
+  font-weight:bold;
+  color:#1b7f4a;
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<div class="navbar">
+  <a>Profile</a>
+  <a>Main</a>
+  <a class="active">Session</a>
+</div>
+
+<h2>جلسة التركيز الجماعية</h2>
+
+<div class="session">
+
+  <!-- Timer -->
+  <div class="timer">
+    <div id="time">40:00</div>
+    <button onclick="startSession()">Start</button>
+  </div>
+
+  <!-- Users -->
+  <div class="users" id="users"></div>
+</div>
+
+<div class="tasks" id="tasks"></div>
+<div id="motivation"></div>
+
+<!-- Sound -->
+<audio id="doneSound">
+  <source src="https://www.soundjay.com/buttons/sounds/button-10.mp3">
+</audio>
+
+<script>
+/* Users */
+const currentUser = "You";
+const users = [
+ {name:"You",img:"https://via.placeholder.com/80",tasks:[
+   {text:"مذاكرة",done:false},
+   {text:"حل واجب",done:false}
+ ]},
+ {name:"Ali",img:"https://via.placeholder.com/80",tasks:[
+   {text:"Lecture",done:true}
+ ]},
+ {name:"Sara",img:"https://via.placeholder.com/80",tasks:[
+   {text:"Revision",done:false}
+ ]}
+];
+
+let selectedUser=0;
+
+/* Messages */
+const startMessages=[
+ "يلا نبدأ 🔥",
+ "ركز معانا 💚",
+ "أنت قدها 👌"
+];
+
+const doneMessages=[
+ "شغل جامد 👏",
+ "إنجاز يحترم 🔥",
+ "كملي كدا 💚"
+];
+
+/* Render users in circle */
+function renderUsers(){
+ const c=document.getElementById("users");
+ c.innerHTML="";
+ const r=220;
+ const cx=window.innerWidth/2;
+ const cy=window.innerHeight/2 - 40;
+
+ users.forEach((u,i)=>{
+  const angle=(i/users.length)*2*Math.PI;
+  const x=cx+r*Math.cos(angle)-35;
+  const y=cy+r*Math.sin(angle)-35;
+
+  const d=document.createElement("div");
+  d.className="user";
+  d.style.left=x+"px";
+  d.style.top=y+"px";
+  d.innerHTML=`<img src="${u.img}"><span>${u.name}</span>`;
+  d.onclick=()=>{selectedUser=i;renderTasks();};
+  c.appendChild(d);
+ });
+}
+
+/* Render tasks */
+function renderTasks(){
+ const c=document.getElementById("tasks");
+ c.innerHTML="";
+ users[selectedUser].tasks.forEach((t,i)=>{
+  const d=document.createElement("div");
+  d.className="task"+(t.done?" done":"");
+  d.innerHTML=`<span>${t.text}</span>`;
+
+  if(users[selectedUser].name===currentUser){
+   const s=document.createElement("button");
+   s.innerText="Start";
+   s.onclick=()=>showStartMsg();
+
+   const e=document.createElement("button");
+   e.innerText="End";
+   e.onclick=()=>finishTask(i);
+
+   d.appendChild(s);
+   d.appendChild(e);
+  }
+  c.appendChild(d);
+ });
+}
+
+/* Start task */
+function showStartMsg(){
+ document.getElementById("motivation").innerText=
+ startMessages[Math.floor(Math.random()*startMessages.length)];
+}
+
+/* Finish task */
+function finishTask(i){
+ users[selectedUser].tasks[i].done=true;
+ renderTasks();
+ document.getElementById("doneSound").play();
+ document.getElementById("motivation").innerText=
+ doneMessages[Math.floor(Math.random()*doneMessages.length)];
+}
+
+/* Timer */
+let time=40*60;
+let timerInterval=null;
+
+function startSession(){
+ document.getElementById("motivation").innerText=
+ startMessages[Math.floor(Math.random()*startMessages.length)];
+
+ if(timerInterval) return;
+
+ timerInterval=setInterval(()=>{
+  time--;
+  let m=Math.floor(time/60);
+  let s=time%60;
+  document.getElementById("time").innerText=
+   `${m}:${s<10?"0":""}${s}`;
+ },1000);
+}
+
+/* Init */
+renderUsers();
+renderTasks();
+</script>
+
+</body>
+</html>
